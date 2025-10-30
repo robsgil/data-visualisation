@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Curva.io - Visualización de Datos Simple y Potente</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="45" height="45" viewBox="0 0 100 100">
+                        <circle cx="50" cy="50" r="45" fill="url(#gradient)"/>
+                        <path d="M 20 50 Q 35 30 50 50 T 80 50" stroke="white" stroke-width="3" fill="none"/>
+                        <circle cx="30" cy="40" r="3" fill="white"/>
+                        <circle cx="50" cy="50" r="3" fill="white"/>
+                        <circle cx="70" cy="40" r="3" fill="white"/>
+                        <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#2C3E50"/>
+                                <stop offset="100%" stop-color="#3498DB"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <span class="logo-text">Curva.io</span>
+            </div>
+            <nav class="nav">
+                <a href="#" class="nav-link">Inicio</a>
+                <a href="#features" class="nav-link">Características</a>
+                <a href="#about" class="nav-link">Acerca de</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    <span class="gradient-text">Visualiza tus datos</span><br>
+                    <span class="subtitle">Con inteligencia artificial</span>
+                </h1>
+                <p class="hero-description">
+                    Transforma tus datos en visualizaciones impactantes. 
+                    Nuestra IA analiza tu información y sugiere el mejor tipo de gráfico para contar tu historia.
+                </p>
+                <div class="hero-badges">
+                    <span class="badge"><i class="fas fa-shield-alt"></i> Sin guardar datos</span>
+                    <span class="badge"><i class="fas fa-bolt"></i> Procesamiento en tiempo real</span>
+                    <span class="badge"><i class="fas fa-gift"></i> 100% Gratuito</span>
+                </div>
+            </div>
+            <div class="hero-wave">
+                <svg viewBox="0 0 1200 120" preserveAspectRatio="none">
+                    <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" 
+                          fill="url(#wave-gradient)"></path>
+                    <defs>
+                        <linearGradient id="wave-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#3498DB" stop-opacity="0.3"/>
+                            <stop offset="100%" stop-color="#2ECC71" stop-opacity="0.3"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Upload Section -->
+    <section class="upload-section">
+        <div class="container">
+            <div class="upload-card">
+                <div class="step-indicators">
+                    <div class="step active" data-step="1">
+                        <span class="step-number">1</span>
+                        <span class="step-label">Cargar Datos</span>
+                    </div>
+                    <div class="step" data-step="2">
+                        <span class="step-number">2</span>
+                        <span class="step-label">Visualizar</span>
+                    </div>
+                    <div class="step" data-step="3">
+                        <span class="step-number">3</span>
+                        <span class="step-label">Descargar</span>
+                    </div>
+                </div>
+
+                <!-- Step 1: Upload -->
+                <div class="step-content" id="step1">
+                    <div class="upload-area" id="uploadArea">
+                        <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" hidden>
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <h3>Arrastra tu archivo aquí</h3>
+                        <p>o haz clic para seleccionar</p>
+                        <span class="file-types">Soportamos CSV, XLSX, XLS</span>
+                    </div>
+
+                    <div class="context-section">
+                        <label for="contextInput" class="context-label">
+                            <i class="fas fa-info-circle"></i> Contexto de tus datos (opcional pero recomendado)
+                        </label>
+                        <textarea id="contextInput" class="context-input" 
+                                  placeholder="Describe qué representan tus datos, qué quieres mostrar o analizar. Por ejemplo: 'Ventas mensuales del 2024, quiero ver tendencias' o 'Datos de encuesta sobre satisfacción del cliente'"
+                                  rows="4"></textarea>
+                        <span class="context-hint">💡 Mientras más contexto proporciones, mejor será la sugerencia de visualización</span>
+                    </div>
+
+                    <button id="processBtn" class="btn btn-primary" disabled>
+                        <i class="fas fa-magic"></i> Procesar con IA
+                    </button>
+                </div>
+
+                <!-- Step 2: Visualization -->
+                <div class="step-content hidden" id="step2">
+                    <div class="visualization-controls">
+                        <div class="control-group">
+                            <label for="chartType">Tipo de Gráfico:</label>
+                            <select id="chartType" class="select-input">
+                                <!-- Options will be populated dynamically -->
+                            </select>
+                        </div>
+                        <button id="backToUpload" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Nueva carga
+                        </button>
+                    </div>
+
+                    <div class="ai-suggestion hidden" id="aiSuggestion">
+                        <div class="suggestion-header">
+                            <i class="fas fa-robot"></i> Sugerencia de IA
+                        </div>
+                        <div class="suggestion-content" id="suggestionContent"></div>
+                    </div>
+
+                    <div class="chart-container" id="chartContainer">
+                        <!-- Chart will be rendered here -->
+                    </div>
+
+                    <div class="export-controls">
+                        <h4>Descargar como:</h4>
+                        <div class="export-buttons">
+                            <button class="export-btn" data-format="png">
+                                <i class="fas fa-image"></i> PNG
+                            </button>
+                            <button class="export-btn" data-format="jpg">
+                                <i class="fas fa-image"></i> JPG
+                            </button>
+                            <button class="export-btn" data-format="pdf">
+                                <i class="fas fa-file-pdf"></i> PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features-section">
+        <div class="container">
+            <h2 class="section-title">¿Por qué elegir Curva.io?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>IA Inteligente</h3>
+                    <p>Nuestra inteligencia artificial analiza tus datos y sugiere la mejor visualización</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <h3>100% Privado</h3>
+                    <p>No guardamos tus datos. Todo el procesamiento ocurre en tiempo real y se elimina al terminar</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3>Responsive</h3>
+                    <p>Funciona perfectamente en cualquier dispositivo: móvil, tablet o desktop</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Múltiples Gráficos</h3>
+                    <p>Más de 15 tipos de visualizaciones diferentes para cada necesidad</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about-section">
+        <div class="container">
+            <div class="about-content">
+                <h2>Democratizando la visualización de datos</h2>
+                <p>
+                    En Curva.io creemos que todos deberían tener acceso a herramientas profesionales de visualización de datos, 
+                    sin importar su nivel técnico o recursos económicos. Por eso creamos una plataforma gratuita, 
+                    fácil de usar y potente que te ayuda a transformar datos en insights visuales.
+                </p>
+                <div class="stats">
+                    <div class="stat">
+                        <span class="stat-number">0</span>
+                        <span class="stat-label">Datos guardados</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">100%</span>
+                        <span class="stat-label">Gratuito</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number">15+</span>
+                        <span class="stat-label">Tipos de gráficos</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="logo">
+                        <span class="logo-text">Curva.io</span>
+                    </div>
+                    <p>Visualización de datos simple y potente</p>
+                </div>
+                <div class="footer-links">
+                    <a href="#">Privacidad</a>
+                    <a href="#">Términos</a>
+                    <a href="#">Contacto</a>
+                    <a href="#">Donar</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Curva.io - Hecho con ❤️ para democratizar el acceso a la visualización de datos</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay hidden" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p id="loadingText">Procesando tus datos...</p>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

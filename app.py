@@ -22,9 +22,8 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 app.config['UPLOAD_EXTENSIONS'] = ['.csv', '.xlsx', '.xls']
 
 # Placeholder for Claude API key
-CLAUDE_API_KEY = "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"
+CLAUDE_API_KEY = os.getenv('CLAUDE_API_KEY')
 
-#os.environ.get('CLAUDE_API_KEY', 'your-api-key-here')
 # Initialize Anthropic client
 anthropic = Anthropic(api_key=CLAUDE_API_KEY)
 

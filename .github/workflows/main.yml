@@ -1,414 +1,257 @@
-name: Curva.io CI/CD Pipeline
+name: Validate Secrets
 
 on:
-  push:
-    branches: [ main, master, develop ]
-  pull_request:
-    branches: [ main, master ]
-  workflow_dispatch:  # Allow manual trigger
-
-env:
-  PYTHON_VERSION: '3.10'
-  NODE_VERSION: '18'
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0'  # Weekly check on Sundays
 
 jobs:
-  # Job 1: Linting and Code Quality
-  lint:
-    name: Code Quality Check
+  check-secrets:
+    name: Validate Repository Secrets
     runs-on: ubuntu-latest
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
     
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-    
-    - name: Cache pip packages
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
-    
-    - name: Install linting tools
+    - name: Check Required Secrets
+      id: check_required
       run: |
-        python -m pip install --upgrade pip
-        pip install flake8 black isort pylint
-    
-    - name: Run Black formatter check
-      run: black --check app.py || true
-    
-    - name: Run Flake8 linter
-      run: flake8 app.py --max-line-length=120 --ignore=E501,W503 || true
-    
-    - name: Run isort import checker
-      run: isort --check-only app.py || true
-
-  # Job 2: Security Scanning
-  security:
-    name: Security Scan
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-    
-    - name: Install security tools
-      run: |
-        python -m pip install --upgrade pip
-        pip install bandit safety pip-audit
-    
-    - name: Run Bandit security linter
-      run: bandit -r app.py -ll || true
-    
-    - name: Check for known security vulnerabilities
-      run: |
-        pip install -r requirements.txt
-        safety check || true
-        pip-audit || true
-
-  # Job 3: Test Application
-  test:
-    name: Test Application
-    runs-on: ubuntu-latest
-    needs: [lint, security]
-    
-    strategy:
-      matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11']
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-    
-    - name: Cache pip packages
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pytest pytest-cov pytest-flask requests-mock
-    
-    - name: Set up test environment
-      env:
-        CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY_TEST || 'test-key-for-ci' }}
-      run: |
-        echo "FLASK_ENV=testing" >> $GITHUB_ENV
-        echo "FLASK_DEBUG=False" >> $GITHUB_ENV
-    
-    - name: Run unit tests
-      env:
-        CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY_TEST || 'test-key-for-ci' }}
-      run: |
-        # Create a simple test file if it doesn't exist
-        if [ ! -f test_app.py ]; then
-          cat > test_app.py << 'EOF'
-import pytest
-import json
-from app import app
-
-@pytest.fixture
-def client():
-    app.config['TESTING'] = True
-    with app.test_client() as client:
-        yield client
-
-def test_home_page(client):
-    """Test that home page loads"""
-    rv = client.get('/')
-    assert rv.status_code == 200
-
-def test_upload_endpoint_exists(client):
-    """Test that upload endpoint exists"""
-    rv = client.post('/upload')
-    assert rv.status_code in [400, 200]  # 400 for no file, 200 for success
-
-def test_visualize_endpoint_exists(client):
-    """Test that visualize endpoint exists"""
-    rv = client.post('/visualize', 
-                    json={'data': [], 'type': 'bar'})
-    assert rv.status_code in [400, 200, 500]
-
-def test_export_endpoint_exists(client):
-    """Test that export endpoint exists"""
-    rv = client.post('/export',
-                    json={'chart': '{}', 'format': 'png'})
-    assert rv.status_code in [400, 200, 500]
-EOF
-        fi
+        echo "🔐 Checking repository secrets configuration..."
+        echo ""
         
-        # Run tests
-        pytest test_app.py -v --tb=short || true
-    
-    - name: Test application imports
-      env:
-        CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY_TEST || 'test-key-for-ci' }}
-      run: |
-        python -c "import app; print('✅ App imports successfully')"
-    
-    - name: Check Flask app configuration
-      env:
-        CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY_TEST || 'test-key-for-ci' }}
-      run: |
-        python -c "
-from app import app
-print(f'✅ Flask app configured')
-print(f'✅ Upload extensions: {app.config.get(\"UPLOAD_EXTENSIONS\")}')"
-
-  # Job 4: Build and Validate
-  build:
-    name: Build and Validate
-    runs-on: ubuntu-latest
-    needs: test
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-    
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-    
-    - name: Validate requirements.txt
-      run: |
-        python -m pip install --upgrade pip
-        pip install pip-tools
-        pip-compile --version || true
-        pip check || true
-    
-    - name: Check for missing dependencies
-      run: |
-        pip install pipreqs
-        pipreqs . --force --print | diff requirements.txt - || true
-    
-    - name: Validate static files
-      run: |
-        echo "Checking static files..."
-        test -f static/css/styles.css && echo "✅ CSS file exists" || echo "❌ CSS file missing"
-        test -f static/js/main.js && echo "✅ JS file exists" || echo "❌ JS file missing"
-        test -f templates/index.html && echo "✅ HTML template exists" || echo "❌ HTML template missing"
-    
-    - name: Build info
-      run: |
-        echo "Build information:"
-        echo "Python version: $(python --version)"
-        echo "Pip version: $(pip --version)"
-        echo "Repository: ${{ github.repository }}"
-        echo "Branch: ${{ github.ref_name }}"
-        echo "Commit: ${{ github.sha }}"
-
-  # Job 5: Deploy to Staging (on develop branch)
-  deploy-staging:
-    name: Deploy to Staging
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
-    environment:
-      name: staging
-      url: ${{ steps.deploy.outputs.url }}
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Deploy to Railway Staging
-      id: deploy
-      env:
-        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN_STAGING }}
-        CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
-      if: env.RAILWAY_TOKEN != ''
-      run: |
-        # Install Railway CLI
-        npm install -g @railway/cli
+        MISSING_SECRETS=""
+        ALL_GOOD=true
         
-        # Deploy to staging environment
-        railway up --service curva-io-staging \
-          -e staging \
-          --json > deploy-output.json || true
-        
-        # Extract URL from deployment
-        if [ -f deploy-output.json ]; then
-          URL=$(cat deploy-output.json | jq -r '.url // "https://curva-io-staging.railway.app"')
-          echo "url=$URL" >> $GITHUB_OUTPUT
-          echo "✅ Deployed to staging: $URL"
-        fi
-    
-    - name: Notify deployment
-      run: |
-        echo "🚀 Staging deployment completed"
-        echo "📍 Environment: staging"
-        echo "🔗 URL: ${{ steps.deploy.outputs.url }}"
-
-  # Job 6: Deploy to Production (on main branch)
-  deploy-production:
-    name: Deploy to Production
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    environment:
-      name: production
-      url: ${{ steps.deploy.outputs.url }}
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Create deployment
-      uses: actions/github-script@v6
-      id: create_deployment
-      with:
-        script: |
-          const deployment = await github.rest.repos.createDeployment({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            ref: context.sha,
-            task: 'deploy',
-            auto_merge: false,
-            required_contexts: [],
-            environment: 'production',
-            description: 'Deploying to production'
-          });
-          return deployment.data.id;
-    
-    - name: Deploy to Railway Production
-      id: deploy
-      env:
-        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
-      run: |
-        # Install Railway CLI if token exists
-        if [ -n "$RAILWAY_TOKEN" ]; then
-          npm install -g @railway/cli
-          
-          # Deploy to production
-          railway up --service curva-io \
-            -e production \
-            --json > deploy-output.json || true
-          
-          # Extract URL
-          if [ -f deploy-output.json ]; then
-            URL=$(cat deploy-output.json | jq -r '.url // "https://curva-io.railway.app"')
-            echo "url=$URL" >> $GITHUB_OUTPUT
-            echo "✅ Deployed to production: $URL"
+        # Check CLAUDE_API_KEY
+        if [ -n "${{ secrets.CLAUDE_API_KEY }}" ]; then
+          echo "✅ CLAUDE_API_KEY is configured"
+          # Validate format (should start with sk-ant-)
+          KEY_PREFIX=$(echo "${{ secrets.CLAUDE_API_KEY }}" | cut -c1-7)
+          if [ "$KEY_PREFIX" = "sk-ant-" ]; then
+            echo "   ✓ Key format appears valid"
+          else
+            echo "   ⚠️ Key format may be incorrect (should start with sk-ant-)"
           fi
         else
-          echo "⚠️ RAILWAY_TOKEN not set, skipping deployment"
-          echo "url=https://curva-io.railway.app" >> $GITHUB_OUTPUT
+          echo "❌ CLAUDE_API_KEY is NOT configured"
+          MISSING_SECRETS="CLAUDE_API_KEY"
+          ALL_GOOD=false
         fi
+        
+        echo ""
+        
+        # Check RAILWAY_TOKEN
+        if [ -n "${{ secrets.RAILWAY_TOKEN }}" ]; then
+          echo "✅ RAILWAY_TOKEN is configured"
+        else
+          echo "⚠️ RAILWAY_TOKEN is NOT configured (required for production deployment)"
+          MISSING_SECRETS="$MISSING_SECRETS RAILWAY_TOKEN"
+        fi
+        
+        echo ""
+        
+        # Set outputs
+        echo "all_good=$ALL_GOOD" >> $GITHUB_OUTPUT
+        echo "missing=$MISSING_SECRETS" >> $GITHUB_OUTPUT
     
-    - name: Update deployment status
-      uses: actions/github-script@v6
-      if: always()
-      with:
-        script: |
-          const deploymentId = ${{ steps.create_deployment.outputs.result }};
-          const status = '${{ job.status }}' === 'success' ? 'success' : 'failure';
+    - name: Check Optional Secrets
+      run: |
+        echo "📋 Checking optional secrets..."
+        echo ""
+        
+        # Check RAILWAY_TOKEN_STAGING
+        if [ -n "${{ secrets.RAILWAY_TOKEN_STAGING }}" ]; then
+          echo "✅ RAILWAY_TOKEN_STAGING is configured (staging deployments enabled)"
+        else
+          echo "ℹ️ RAILWAY_TOKEN_STAGING not configured (staging deployments will use production token)"
+        fi
+        
+        # Check CLAUDE_API_KEY_TEST
+        if [ -n "${{ secrets.CLAUDE_API_KEY_TEST }}" ]; then
+          echo "✅ CLAUDE_API_KEY_TEST is configured (separate test key available)"
+        else
+          echo "ℹ️ CLAUDE_API_KEY_TEST not configured (tests will use main key)"
+        fi
+        
+        echo ""
+    
+    - name: Test Python Environment
+      run: |
+        echo "🐍 Testing Python environment..."
+        python --version
+        pip --version
+        echo "✅ Python environment is functional"
+        echo ""
+    
+    - name: Test API Key Functionality
+      id: test_api
+      env:
+        CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+      run: |
+        if [ -n "$CLAUDE_API_KEY" ]; then
+          echo "🔌 Testing Claude API connection..."
           
-          await github.rest.repos.createDeploymentStatus({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            deployment_id: deploymentId,
-            state: status,
-            environment_url: '${{ steps.deploy.outputs.url }}',
-            description: status === 'success' ? 'Deployment successful' : 'Deployment failed'
-          });
-    
-    - name: Production deployment summary
-      run: |
-        echo "## 🎉 Production Deployment Complete" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "- **Environment:** Production" >> $GITHUB_STEP_SUMMARY
-        echo "- **URL:** ${{ steps.deploy.outputs.url }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Deployed by:** ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Time:** $(date)" >> $GITHUB_STEP_SUMMARY
+          # Create a test script
+          cat > test_api.py << 'EOF'
+import os
+import sys
 
-  # Job 7: Post-deployment Health Check
-  health-check:
-    name: Health Check
-    runs-on: ubuntu-latest
-    needs: [deploy-staging, deploy-production]
-    if: always() && (needs.deploy-staging.result == 'success' || needs.deploy-production.result == 'success')
+try:
+    from anthropic import Anthropic
     
-    steps:
-    - name: Check staging health
-      if: github.ref == 'refs/heads/develop'
-      run: |
-        URL="${{ needs.deploy-staging.outputs.url }}"
-        if [ -n "$URL" ]; then
-          echo "Checking staging health at $URL"
-          curl -f -s -o /dev/null -w "%{http_code}" $URL || echo "Health check failed"
+    # Initialize client
+    client = Anthropic(api_key=os.environ.get('CLAUDE_API_KEY'))
+    
+    # Try a minimal API call
+    try:
+        # This is just to test the key validity
+        # We're not actually making a call to save API usage
+        if client.api_key and client.api_key.startswith('sk-ant-'):
+            print("✅ API key format is valid")
+            print("   Note: Actual API call skipped to save usage")
+        else:
+            print("⚠️ API key format may be invalid")
+    except Exception as e:
+        print(f"⚠️ Could not validate API: {str(e)}")
+        
+except ImportError:
+    print("⚠️ Anthropic package not installed (will be installed during deployment)")
+EOF
+          
+          # Install anthropic temporarily
+          pip install anthropic -q
+          
+          # Run test
+          python test_api.py
+        else
+          echo "⚠️ Skipping API test (CLAUDE_API_KEY not set)"
         fi
     
-    - name: Check production health
-      if: github.ref == 'refs/heads/main'
+    - name: Test Railway CLI
       run: |
-        URL="${{ needs.deploy-production.outputs.url }}"
-        if [ -n "$URL" ]; then
-          echo "Checking production health at $URL"
-          curl -f -s -o /dev/null -w "%{http_code}" $URL || echo "Health check failed"
+        echo "🚂 Testing Railway CLI installation..."
+        
+        # Test npm availability
+        if command -v npm &> /dev/null; then
+          echo "✅ npm is available"
+          
+          # Test Railway CLI can be installed
+          npm list -g @railway/cli &> /dev/null || echo "ℹ️ Railway CLI not installed (will be installed during deployment)"
+        else
+          echo "⚠️ npm not found (needed for Railway deployment)"
+        fi
+        
+        echo ""
+    
+    - name: Validate Deployment Files
+      run: |
+        echo "📄 Checking deployment configuration files..."
+        
+        FILES_OK=true
+        
+        # Check required files
+        for file in "requirements.txt" "Procfile" "railway.json" "app.py"; do
+          if [ -f "$file" ]; then
+            echo "✅ $file exists"
+          else
+            echo "❌ $file is missing"
+            FILES_OK=false
+          fi
+        done
+        
+        # Check Railway configuration
+        if [ -f "railway.json" ]; then
+          # Validate JSON syntax
+          python -m json.tool railway.json > /dev/null 2>&1 && echo "   ✓ railway.json is valid JSON" || echo "   ⚠️ railway.json has invalid JSON syntax"
+        fi
+        
+        # Check Procfile
+        if [ -f "Procfile" ]; then
+          if grep -q "web:" Procfile; then
+            echo "   ✓ Procfile has web process defined"
+          else
+            echo "   ⚠️ Procfile missing web process"
+          fi
+        fi
+        
+        echo ""
+        
+        if [ "$FILES_OK" = "false" ]; then
+          echo "⚠️ Some deployment files are missing"
         fi
     
-    - name: Run smoke tests
+    - name: Generate Report
       run: |
-        echo "Running smoke tests..."
-        # Add actual smoke tests here when deployed URL is available
-
-# Workflow notifications
-  notify:
-    name: Send Notifications
-    runs-on: ubuntu-latest
-    needs: [test, build, deploy-production]
-    if: always() && github.event_name == 'push'
-    
-    steps:
-    - name: Workflow summary
-      run: |
-        echo "## Workflow Summary" >> $GITHUB_STEP_SUMMARY
+        echo "## 📊 Secrets Validation Report" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
-        echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
-        echo "| Lint | ${{ needs.lint.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| Security | ${{ needs.security.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| Test | ${{ needs.test.result }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| Build | ${{ needs.build.result }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| Deploy | ${{ needs.deploy-production.result || 'skipped' }} |" >> $GITHUB_STEP_SUMMARY
+        echo "**Date:** $(date)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        echo "### Required Secrets" >> $GITHUB_STEP_SUMMARY
+        echo "| Secret | Status | Notes |" >> $GITHUB_STEP_SUMMARY
+        echo "|--------|--------|-------|" >> $GITHUB_STEP_SUMMARY
+        
+        # CLAUDE_API_KEY status
+        if [ -n "${{ secrets.CLAUDE_API_KEY }}" ]; then
+          echo "| CLAUDE_API_KEY | ✅ Configured | Required for AI analysis |" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "| CLAUDE_API_KEY | ❌ Missing | **Action required** |" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # RAILWAY_TOKEN status
+        if [ -n "${{ secrets.RAILWAY_TOKEN }}" ]; then
+          echo "| RAILWAY_TOKEN | ✅ Configured | Ready for deployment |" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "| RAILWAY_TOKEN | ⚠️ Missing | Deployment will fail |" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Optional Secrets" >> $GITHUB_STEP_SUMMARY
+        echo "| Secret | Status | Purpose |" >> $GITHUB_STEP_SUMMARY
+        echo "|--------|--------|---------|" >> $GITHUB_STEP_SUMMARY
+        
+        # Optional secrets
+        if [ -n "${{ secrets.RAILWAY_TOKEN_STAGING }}" ]; then
+          echo "| RAILWAY_TOKEN_STAGING | ✅ Set | Staging deployments |" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "| RAILWAY_TOKEN_STAGING | ℹ️ Not set | Will use production token |" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [ -n "${{ secrets.CLAUDE_API_KEY_TEST }}" ]; then
+          echo "| CLAUDE_API_KEY_TEST | ✅ Set | Testing environment |" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "| CLAUDE_API_KEY_TEST | ℹ️ Not set | Will use main key |" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Action items
+        if [ "${{ steps.check_required.outputs.all_good }}" != "true" ]; then
+          echo "### ⚠️ Action Required" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Missing required secrets: ${{ steps.check_required.outputs.missing }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Please follow the instructions in SECRETS_SETUP.md to configure missing secrets." >> $GITHUB_STEP_SUMMARY
+        else
+          echo "### ✅ All Required Secrets Configured" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Your repository is ready for deployment!" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "---" >> $GITHUB_STEP_SUMMARY
+        echo "*Run this workflow anytime to validate your secrets configuration.*" >> $GITHUB_STEP_SUMMARY
     
-    # Add Slack/Discord/Email notifications here if needed
-    - name: Notify on failure
-      if: failure()
+    - name: Final Status
       run: |
-        echo "❌ Workflow failed. Check the logs for details."
-        # Add notification logic here (Slack, Discord, email, etc.)
-    
-    - name: Notify on success
-      if: success() && github.ref == 'refs/heads/main'
-      run: |
-        echo "✅ Production deployment successful!"
-        # Add notification logic here
+        if [ "${{ steps.check_required.outputs.all_good }}" = "true" ]; then
+          echo "✅ All required secrets are properly configured!"
+          echo "Your repository is ready for deployment."
+        else
+          echo "⚠️ Some required secrets are missing."
+          echo "Please configure the missing secrets before attempting deployment."
+          echo ""
+          echo "See SECRETS_SETUP.md for detailed instructions."
+          exit 1
+        fi

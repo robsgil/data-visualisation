@@ -14,24 +14,12 @@ import plotly.io as pio
 from datetime import datetime
 import tempfile
 
-# Import configuration
-try:
-    from config import init_app, Config
-except ImportError:
-    # Fallback if config.py doesn't exist
-    class Config:
-        CLAUDE_API_KEY = os.environ.get('CLAUDE_API_KEY')
-        MAX_CONTENT_LENGTH = 16 * 1024 * 1024
-        UPLOAD_EXTENSIONS = ['.csv', '.xlsx', '.xls']
-    
-    def init_app(app):
-        app.config['MAX_CONTENT_LENGTH'] = Config.MAX_CONTENT_LENGTH
-        app.config['UPLOAD_EXTENSIONS'] = Config.UPLOAD_EXTENSIONS
-        return app
-
 app = Flask(__name__)
-app = init_app(app)  # Initialize with configuration
 CORS(app)
+
+# Configuration
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+app.config['UPLOAD_EXTENSIONS'] = ['.csv', '.xlsx', '.xls']
 
 # Get API key from configuration
 CLAUDE_API_KEY = app.config.get('CLAUDE_API_KEY', os.environ.get('CLAUDE_API_KEY'))
@@ -96,8 +84,8 @@ def analyze_data_with_ai(df, context):
         """
         
         response = anthropic.messages.create(
-            model="claude-3-5-sonnet-20241022",
-            max_tokens=1000,
+            model="claude-sonnet-4-5",
+            max_tokens=2000,
             messages=[{"role": "user", "content": prompt}]
         )
         

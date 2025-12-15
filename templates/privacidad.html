@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Política de Privacidad - Curva.io</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .privacy-content {
+            background: white;
+            border-radius: 20px;
+            padding: 60px;
+            margin: 80px auto;
+            max-width: 900px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .privacy-content h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #2C3E50, #3498DB);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .privacy-content h2 {
+            font-size: 1.8rem;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            color: #2C3E50;
+        }
+
+        .privacy-content p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #2C3E50;
+            margin-bottom: 20px;
+        }
+
+        .privacy-content ul {
+            margin-left: 30px;
+            margin-bottom: 20px;
+        }
+
+        .privacy-content li {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #2C3E50;
+            margin-bottom: 10px;
+        }
+
+        .privacy-content strong {
+            color: #2C3E50;
+            font-weight: 600;
+        }
+
+        .last-updated {
+            font-size: 0.95rem;
+            color: #6C757D;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .privacy-content {
+                padding: 30px 20px;
+                margin: 40px 20px;
+            }
+
+            .privacy-content h1 {
+                font-size: 2rem;
+            }
+
+            .privacy-content h2 {
+                font-size: 1.5rem;
+            }
+
+            .privacy-content p, .privacy-content li {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <a href="/" style="text-decoration: none; display: flex; align-items: center; gap: 10px;">
+                    <div class="logo-icon">
+                        <svg width="45" height="45" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="45" fill="url(#gradient)"/>
+                            <path d="M 20 50 Q 35 30 50 50 T 80 50" stroke="white" stroke-width="3" fill="none"/>
+                            <circle cx="30" cy="40" r="3" fill="white"/>
+                            <circle cx="50" cy="50" r="3" fill="white"/>
+                            <circle cx="70" cy="40" r="3" fill="white"/>
+                            <defs>
+                                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#2C3E50"/>
+                                    <stop offset="100%" stop-color="#3498DB"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
+                    <span class="logo-text">Curva.io</span>
+                </a>
+            </div>
+            <nav class="nav">
+                <a href="/" class="nav-link">Inicio</a>
+                <a href="/#features" class="nav-link">Características</a>
+                <a href="/#about" class="nav-link">Acerca de</a>
+                <a href="https://ko-fi.com/curvaio" target="_blank" class="nav-link">Donar</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Privacy Content -->
+    <div class="container">
+        <div class="privacy-content">
+            <h1>Política de Privacidad</h1>
+            <p class="last-updated"><strong>Última actualización:</strong> Diciembre 2024</p>
+
+            <h2>1. Introducción</h2>
+            <p>
+                En Curva.io, nos tomamos muy en serio tu privacidad. Esta política de privacidad explica cómo manejamos 
+                tu información cuando utilizas nuestra plataforma de visualización de datos.
+            </p>
+
+            <h2>2. Nuestro Compromiso con la Privacidad</h2>
+            <p>
+                <strong>No almacenamos tus datos.</strong> Curva.io está diseñada con la privacidad como prioridad fundamental:
+            </p>
+            <ul>
+                <li>Los archivos que subes se procesan en tiempo real y se eliminan inmediatamente después</li>
+                <li>No guardamos ninguna copia de tus datos en nuestros servidores</li>
+                <li>No compartimos tus datos con terceros</li>
+                <li>Todo el procesamiento ocurre durante tu sesión activa y se descarta al finalizar</li>
+            </ul>
+
+            <h2>3. Información que Procesamos (Temporalmente)</h2>
+            <p>Cuando utilizas Curva.io, procesamos temporalmente:</p>
+            <ul>
+                <li><strong>Archivos de datos:</strong> CSV, XLSX, XLS que subes para visualización</li>
+                <li><strong>Contexto opcional:</strong> Cualquier descripción que proporciones sobre tus datos</li>
+                <li><strong>Visualizaciones generadas:</strong> Los gráficos creados durante tu sesión</li>
+            </ul>
+            <p>
+                Toda esta información se procesa en memoria durante tu sesión activa y se elimina completamente 
+                cuando cierras la aplicación o tu sesión expira.
+            </p>
+
+            <h2>4. Uso de Inteligencia Artificial</h2>
+            <p>
+                Utilizamos servicios de inteligencia artificial (Claude de Anthropic) para analizar tus datos y 
+                sugerir visualizaciones apropiadas. Los datos enviados a estos servicios:
+            </p>
+            <ul>
+                <li>Se procesan únicamente para generar recomendaciones de visualización</li>
+                <li>No se utilizan para entrenar modelos de IA</li>
+                <li>Se eliminan después del procesamiento</li>
+                <li>Están sujetos a las políticas de privacidad de nuestros proveedores de IA</li>
+            </ul>
+
+            <h2>5. Cookies y Tecnologías de Seguimiento</h2>
+            <p>
+                Curva.io utiliza cookies técnicas mínimas necesarias para el funcionamiento de la aplicación:
+            </p>
+            <ul>
+                <li><strong>Cookies de sesión:</strong> Para mantener tu sesión activa mientras usas la aplicación</li>
+                <li><strong>Cookies técnicas:</strong> Para recordar tus preferencias de interfaz durante la sesión</li>
+            </ul>
+            <p>
+                No utilizamos cookies de seguimiento, publicidad o análisis de terceros.
+            </p>
+
+            <h2>6. Seguridad</h2>
+            <p>
+                Implementamos medidas de seguridad técnicas y organizativas para proteger tus datos durante 
+                el procesamiento:
+            </p>
+            <ul>
+                <li>Conexiones HTTPS encriptadas</li>
+                <li>Procesamiento en memoria sin almacenamiento persistente</li>
+                <li>Eliminación automática de datos al finalizar la sesión</li>
+                <li>Sin almacenamiento en bases de datos</li>
+            </ul>
+
+            <h2>7. Tus Derechos</h2>
+            <p>
+                Dado que no almacenamos ningún dato personal o archivo tuyo, no hay información que corregir, 
+                eliminar o exportar. Cada vez que usas Curva.io, tu sesión comienza completamente en blanco.
+            </p>
+
+            <h2>8. Servicios de Terceros</h2>
+            <p>Curva.io utiliza los siguientes servicios de terceros:</p>
+            <ul>
+                <li><strong>Anthropic (Claude):</strong> Para análisis de datos con IA</li>
+                <li><strong>Plotly:</strong> Para renderizado de visualizaciones (procesado en tu navegador)</li>
+                <li><strong>Font Awesome & Google Fonts:</strong> Para iconos y tipografías</li>
+            </ul>
+
+            <h2>9. Menores de Edad</h2>
+            <p>
+                Curva.io no está dirigida específicamente a menores de 13 años. No recopilamos 
+                intencionalmente información de menores de edad.
+            </p>
+
+            <h2>10. Cambios a esta Política</h2>
+            <p>
+                Podemos actualizar esta política de privacidad ocasionalmente. Te notificaremos de cualquier 
+                cambio significativo publicando la nueva política en esta página con una fecha de actualización nueva.
+            </p>
+
+            <h2>11. Contacto</h2>
+            <p>
+                Si tienes preguntas sobre esta política de privacidad o sobre cómo manejamos tus datos, 
+                puedes contactarnos en:
+            </p>
+            <p>
+                <strong>Email:</strong> <a href="mailto:hola@curva.io" style="color: #3498DB;">hola@curva.io</a>
+            </p>
+
+            <h2>12. Resumen Ejecutivo</h2>
+            <p>
+                <strong>En pocas palabras:</strong> Curva.io no guarda ningún dato tuyo. Todo se procesa en tiempo 
+                real y se elimina inmediatamente. Tu privacidad es total y absoluta.
+            </p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="logo">
+                        <div class="logo-icon">
+                            <svg width="45" height="45" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="45" fill="url(#gradient-footer)"/>
+                                <path d="M 20 50 Q 35 30 50 50 T 80 50" stroke="white" stroke-width="3" fill="none"/>
+                                <circle cx="30" cy="40" r="3" fill="white"/>
+                                <circle cx="50" cy="50" r="3" fill="white"/>
+                                <circle cx="70" cy="40" r="3" fill="white"/>
+                                <defs>
+                                    <linearGradient id="gradient-footer" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stop-color="#2C3E50"/>
+                                        <stop offset="100%" stop-color="#3498DB"/>
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
+                        <span class="logo-text">Curva.io</span>
+                    </div>
+                    <p>Tus datos, nuestra visualización</p>
+                </div>
+                <div class="footer-links">
+                    <a href="privacidad.html">Privacidad</a>
+                    <a href="mailto:hola@curva.io">Contacto</a>
+                    <a href="https://ko-fi.com/curvaio" target="_blank">Donar</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Curva.io</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
